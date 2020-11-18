@@ -11,6 +11,7 @@ class Table_gate_c extends CI_Controller
 		// // $this->load->model('trip');
 		// // $this->load->library('../modules/trips/controllers/table_page_lib');
 		// $this->load->library('table_page_lib');
+		$this->load->library('table_gate_lib');
 
 
 		$this->load->database();
@@ -42,8 +43,14 @@ class Table_gate_c extends CI_Controller
 		// $this->load->view('table_block_readonly_v', $data);
 		// $this->load->view('table_footer_v');
 
+		$data = array();
+		$data['db_to_configs'] = $this->table_gate_lib->db_to_configs();
+		$data['configs'] = $this->table_gate_lib->configs();
+		$data['configs_to_state'] = $this->table_gate_lib->configs_to_state();
+
+
 		$this->load->view('header_v', array("title"=>"Table gate"));
-		$this->load->view('table_gate_v', array());
+		$this->load->view('table_gate_v', $data);
 		$this->load->view('footer_v');
 
 	}
