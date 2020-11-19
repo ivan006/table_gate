@@ -44,16 +44,23 @@ class Table_gate_lib
 			$query = implode(" ", $query);
 			$query_result = $this->CI->db->query($query)->result_array();
 
+
+			$prime_key_index = array_search('PRI', array_column($query_result, 'Key'));
+			$tables_and_fields[$key]["primary_key"] = $query_result[$prime_key_index]["Field"];
+
 			$fields = $query_result;
+
+			$tables_and_fields[$key]["state_indicator"] = "";
 
 			$fields_result = array();
 			foreach ($fields as $fields_key => $fields_value) {
-				$fields_result["state_indicator_(option_".$fields_key.")"] = $fields_value["Field"];
+				$tables_and_fields[$key]["state_indicator_(option_".$fields_key.")"] = $fields_value["Field"];
 			}
 			// ksort($fields_result);
 
 
-			$tables_and_fields[$key] = $fields_result;
+			// $tables_and_fields[$key] = $fields_result;
+
 
 
 			// $query = array(
@@ -102,7 +109,7 @@ class Table_gate_lib
 
 
 			$items = $this->CI->db->select('count(*) as allcount')->from($key)->get()->result()[0]->allcount;
-			$items_per_page = 100;
+			$items_per_page = 1000;
 			$pages = ceil($items/$items_per_page);
 			if ($pages == 0) {
 				$pages = 1;
@@ -110,9 +117,15 @@ class Table_gate_lib
 			$sub_result = range(1, $pages, 1);
 			$sub_result_2 = array();
 			foreach ($sub_result as $page) {
-				$start_item = ($page*$items_per_page)-$items_per_page;
-				$sub_result_2[] = $this->CI->db->select($value)->from($key)->limit($items_per_page, $start_item)->get()->result_array();
-				// $sub_result_2[] = $this->CI->db->select($value)->from($key)->limit($items_per_page, $start_item)->get()->result_array();
+				$end_item = $page*$items_per_page;
+				$start_item = $end_item-$items_per_page+1;
+				$rows = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->limit($items_per_page-1, $start_item-1)->get()->result_array();
+
+				$rows_2_keys = array_column($rows, $value["primary_key"]);
+				$rows_2_values = array_column($rows, $value["state_indicator"]);
+				$rows_2=array_combine($rows_2_keys,$rows_2_values);
+
+				$sub_result_2[$start_item."-".$end_item] = $rows_2;
 
 			}
 			$result[$key] = $sub_result_2;
