@@ -45,6 +45,9 @@ class Table_gate_c extends CI_Controller
 
 		$data = array();
 		$data['db_to_configs'] = $this->table_gate_lib->db_to_configs();
+		$data['configs'] = "";
+		$data['configs_to_state'] = "";
+
 		$data['configs'] = $this->table_gate_lib->configs();
 		$data['configs_to_state'] = $this->table_gate_lib->configs_to_state();
 

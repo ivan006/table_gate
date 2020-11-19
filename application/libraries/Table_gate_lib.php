@@ -104,28 +104,39 @@ class Table_gate_lib
 		// 	// code...
 		// }
 		$result = array();
+
 		foreach ($tables as $key => $value) {
 			// $result = $this->CI->db->get($key)->result();
 
 
 			$items = $this->CI->db->select('count(*) as allcount')->from($key)->get()->result()[0]->allcount;
-			$items_per_page = 1000;
+			$items_per_page = 100;
 			$pages = ceil($items/$items_per_page);
 			if ($pages == 0) {
 				$pages = 1;
 			}
 			$sub_result = range(1, $pages, 1);
 			$sub_result_2 = array();
+
+			$current_page = 0;
+			$max_pages = -1; // -1 = infinity
 			foreach ($sub_result as $page) {
+				$rows_2 = array();
 				$end_item = $page*$items_per_page;
 				$start_item = $end_item-$items_per_page+1;
-				$rows = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->limit($items_per_page-1, $start_item-1)->get()->result_array();
+				if ($current_page < $max_pages OR $max_pages == -1) {
+					// code...
+					$rows = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->limit($items_per_page-1, $start_item-1)->get()->result_array();
 
-				$rows_2_keys = array_column($rows, $value["primary_key"]);
-				$rows_2_values = array_column($rows, $value["state_indicator"]);
-				$rows_2=array_combine($rows_2_keys,$rows_2_values);
+					$rows_2_keys = array_column($rows, $value["primary_key"]);
+					$rows_2_values = array_column($rows, $value["state_indicator"]);
+					$rows_2=array_combine($rows_2_keys,$rows_2_values);
 
+				}
 				$sub_result_2[$start_item."-".$end_item] = $rows_2;
+
+
+				$current_page = $current_page+1;
 
 			}
 			$result[$key] = $sub_result_2;
