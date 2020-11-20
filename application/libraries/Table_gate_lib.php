@@ -110,30 +110,56 @@ class Table_gate_lib
 
 
 			$items = $this->CI->db->select('count(*) as allcount')->from($key)->get()->result()[0]->allcount;
+
+
+			// $query = array(
+			// 	"SHOW TABLE STATUS WHERE `name` LIKE '$key' ;",
+			// );
+			// $query = implode(" ", $query);
+			//
+			// $query_result = $this->CI->db->query($query)->result_array();
+			// echo "<pre>";
+			// var_dump($query);
+			// exit;
+
 			$items_per_page = 100;
 			$pages = ceil($items/$items_per_page);
 			if ($pages == 0) {
 				$pages = 1;
 			}
+
+
+
+			$query_result = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->get()->result_array();
+
+			$query_result_keys = array_column($query_result, $value["primary_key"]);
+			$query_result_values = array_column($query_result, $value["state_indicator"]);
+
+			$query_result_2 = array();
+			$query_result_2 = array_combine($query_result_keys,$query_result_values);
+
+			// ->limit($items_per_page-1, $start_item-1)
+
+
 			$sub_result = range(1, $pages, 1);
 			$sub_result_2 = array();
 
 			$current_page = 0;
-			$max_pages = -1; // -1 = infinity
+			$max_pages = 1; // -1 = infinity
 			foreach ($sub_result as $page) {
-				$rows_2 = array();
 				$end_item = $page*$items_per_page;
 				$start_item = $end_item-$items_per_page+1;
+
+				$rows = array();
 				if ($current_page < $max_pages OR $max_pages == -1) {
-					// code...
-					$rows = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->limit($items_per_page-1, $start_item-1)->get()->result_array();
-
-					$rows_2_keys = array_column($rows, $value["primary_key"]);
-					$rows_2_values = array_column($rows, $value["state_indicator"]);
-					$rows_2=array_combine($rows_2_keys,$rows_2_values);
-
+					$rows_range  = range($start_item, $end_item, 1);
+					// $rows_range = array_flip($rows_range);
+					$rows_range = array_fill_keys($rows_range,"");
+					$rows = array_intersect_key($query_result_2, $rows_range);
+					// $rows = array_slice($query_result_2, $start_item-1, $items_per_page, true);
 				}
-				$sub_result_2[$start_item."-".$end_item] = $rows_2;
+				$sub_result_2[$start_item."-".$end_item]["pages"] = "$items/$items_per_page";
+				$sub_result_2[$start_item."-".$end_item]["results"] = $rows;
 
 
 				$current_page = $current_page+1;

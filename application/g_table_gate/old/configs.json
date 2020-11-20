@@ -1,0 +1,18 @@
+{
+  "groups": {
+    "primary_key": "id",
+    "state_indicator": "description"
+  },
+  "login_attempts": {
+    "primary_key": "id",
+    "state_indicator": "time"
+  },
+  "users": {
+    "primary_key": "id",
+    "state_indicator": "last_login"
+  },
+  "users_groups": {
+    "primary_key": "id",
+    "state_indicator": "group_id"
+  }
+}
