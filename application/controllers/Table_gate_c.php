@@ -60,9 +60,9 @@ class Table_gate_c extends CI_Controller
 
 	}
 
-	public function sync_api($path)
+	public function sync_api($type, $path)
 	{
-		$result = $this->table_gate_lib->sync_api($path);
+		$result = $this->table_gate_lib->sync_api($type, $path);
 		header('Content-Type: application/json');
 		echo $result;
 
