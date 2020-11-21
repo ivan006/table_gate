@@ -1,20 +1,4 @@
 {
-    "wp_actionscheduler_actions": {
-        "primary_key": "action_id",
-        "state_indicator": "last_attempt_local"
-    },
-    "wp_actionscheduler_claims": {
-        "primary_key": "claim_id",
-        "state_indicator": "date_created_gmt"
-    },
-    "wp_actionscheduler_groups": {
-        "primary_key": "group_id",
-        "state_indicator": "slug"
-    },
-    "wp_actionscheduler_logs": {
-        "primary_key": "log_id",
-        "state_indicator": "log_date_local"
-    },
     "wp_commentmeta": {
         "primary_key": "meta_id",
         "state_indicator": "meta_value"
@@ -25,51 +9,19 @@
     },
     "wp_links": {
         "primary_key": "link_id",
-        "state_indicator": "link_url"
-    },
-    "wp_nextend2_image_storage": {
-        "primary_key": "id",
-        "state_indicator": "value"
-    },
-    "wp_nextend2_section_storage": {
-        "primary_key": "id",
-        "state_indicator": "editable"
-    },
-    "wp_nextend2_smartslider3_generators": {
-        "primary_key": "id",
-        "state_indicator": "params"
-    },
-    "wp_nextend2_smartslider3_sliders": {
-        "primary_key": "id",
-        "state_indicator": "ordering"
-    },
-    "wp_nextend2_smartslider3_sliders_xref": {
-        "primary_key": "group_id",
-        "state_indicator": "ordering"
-    },
-    "wp_nextend2_smartslider3_slides": {
-        "primary_key": "id",
-        "state_indicator": "published"
+        "state_indicator": "link_updated"
     },
     "wp_options": {
         "primary_key": "option_id",
-        "state_indicator": "autoload"
+        "state_indicator": "option_name"
     },
     "wp_postmeta": {
         "primary_key": "meta_id",
-        "state_indicator": "meta_value"
+        "state_indicator": "meta_key"
     },
     "wp_posts": {
         "primary_key": "ID",
         "state_indicator": "post_date"
-    },
-    "wp_search_filter_cache": {
-        "primary_key": "id",
-        "state_indicator": "term_parent_id"
-    },
-    "wp_search_filter_term_results": {
-        "primary_key": "id",
-        "state_indicator": "result_ids"
     },
     "wp_term_relationships": {
         "primary_key": "object_id",
@@ -77,7 +29,7 @@
     },
     "wp_term_taxonomy": {
         "primary_key": "term_taxonomy_id",
-        "state_indicator": "count"
+        "state_indicator": "description"
     },
     "wp_termmeta": {
         "primary_key": "meta_id",
@@ -85,18 +37,14 @@
     },
     "wp_terms": {
         "primary_key": "term_id",
-        "state_indicator": "term_group"
+        "state_indicator": "slug"
     },
     "wp_usermeta": {
         "primary_key": "umeta_id",
-        "state_indicator": "meta_value"
+        "state_indicator": "meta_key"
     },
     "wp_users": {
         "primary_key": "ID",
         "state_indicator": "display_name"
-    },
-    "wp_wpforms_tasks_meta": {
-        "primary_key": "id",
-        "state_indicator": "date"
     }
 }

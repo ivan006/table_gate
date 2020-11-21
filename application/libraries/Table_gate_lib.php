@@ -93,7 +93,7 @@ class Table_gate_lib
 		return $result;
 	}
 
-	function configs_to_state()
+	function configs_to_state_json()
 	{
 		$tables = APPPATH.'g_table_gate/configs.json';
 		// include($erd_two_path);
@@ -109,17 +109,16 @@ class Table_gate_lib
 			// $result = $this->CI->db->get($key)->result();
 
 
-			$items = $this->CI->db->select('count(*) as allcount')->from($key)->get()->result()[0]->allcount;
+			// $items = $this->CI->db->select('count(*) as allcount')->from($key)->get()->result()[0]->allcount;
 
 
-			// $query = array(
-			// 	"SHOW TABLE STATUS WHERE `name` LIKE '$key' ;",
-			// );
-			// $query = implode(" ", $query);
-			//
-			// $query_result = $this->CI->db->query($query)->result_array();
-			// echo "<pre>";
-			// var_dump($query);
+			$query = array(
+				"SHOW TABLE STATUS WHERE `name` LIKE '$key' ;",
+			);
+			$query = implode(" ", $query);
+
+			$items = $this->CI->db->query($query)->result_array()[0]["Auto_increment"];
+			// var_dump($items);
 			// exit;
 
 			$items_per_page = 100;
@@ -145,21 +144,28 @@ class Table_gate_lib
 			$sub_result_2 = array();
 
 			$current_page = 0;
-			$max_pages = 1; // -1 = infinity
+			$max_pages = -1; // -1 = infinity
 			foreach ($sub_result as $page) {
 				$end_item = $page*$items_per_page;
 				$start_item = $end_item-$items_per_page+1;
 
 				$rows = array();
 				if ($current_page < $max_pages OR $max_pages == -1) {
+					if (1==1) {
+						// $rows = $this->CI->db->select($value["state_indicator"].",".$value["primary_key"])->from($key)->limit($items_per_page-1, $start_item-1)->get()->result_array();
+						//
+						// $query_result_keys = array_column($rows, $value["primary_key"]);
+						// $query_result_values = array_column($rows, $value["state_indicator"]);
+						// $rows = array_combine($query_result_keys,$query_result_values);
+					}
+
 					$rows_range  = range($start_item, $end_item, 1);
-					// $rows_range = array_flip($rows_range);
 					$rows_range = array_fill_keys($rows_range,"");
 					$rows = array_intersect_key($query_result_2, $rows_range);
-					// $rows = array_slice($query_result_2, $start_item-1, $items_per_page, true);
+					ksort($rows);
 				}
-				$sub_result_2[$start_item."-".$end_item]["pages"] = "$items/$items_per_page";
-				$sub_result_2[$start_item."-".$end_item]["results"] = $rows;
+				// $sub_result_2[$start_item."-".$end_item]["pages"] = "$items/$items_per_page";
+				$sub_result_2[$start_item."-".$end_item] = $rows;
 
 
 				$current_page = $current_page+1;
@@ -194,6 +200,98 @@ class Table_gate_lib
 
 
 		return $result;
+	}
+
+	function state_dir_to_state_json()
+	{
+		$dir = APPPATH.'g_table_gate/state';
+		$dir_scandir = scandir($dir);
+
+		$database_name = $this->CI->db->database;
+
+		// echo "<pre>";
+		// var_dump($database_name);
+		// exit;
+
+		$haystack = $dir_scandir;
+
+		// array_key_exists\s*(\s*'|$['|\S]\s*,([^)]*))
+		// echo $database_name;
+		// $haystack = "owlbluegpyuty_db5__sss";
+
+		$dir_and_timestamp_for_db = $this->state_dir_to_state_json_helper($haystack, $database_name);
+
+		if ($dir_and_timestamp_for_db == false) {
+
+			$now = date('Y-m-d H-i-s');
+			$db_dir = $database_name."_TS_".$now."_TS";
+			mkdir($dir."/".$db_dir);
+
+		} else {
+
+			$haystack = scandir($dir."/".$dir_and_timestamp_for_db["dir"]);
+			$db_dir = $dir_and_timestamp_for_db["dir"];
+
+			$configs = $this->configs();
+			$configs = json_decode($configs);
+
+
+			foreach ($configs as $table => $value) {
+				$dir_and_timestamp_table = $this->state_dir_to_state_json_helper($haystack, $table);
+
+				if ($dir_and_timestamp_table == false) {
+
+					$now = date('Y-m-d H-i-s');
+					$table_dir = $table."_TS_".$now."_TS";
+					mkdir($dir."/".$db_dir."/".$table_dir);
+				}	else {
+					// code...
+				}
+
+
+				// echo "<pre>";
+				// var_dump($dir_scandir);
+				// exit;
+			}
+
+
+		}
+
+		return 123;
+
+	}
+
+	function state_dir_to_state_json_helper($haystack, $entity_name)
+	{
+
+		$matches  = preg_grep ('/'.$entity_name.'_TS_(.*?)_TS/i', $haystack);
+
+		if (!empty($matches)) {
+			$matches = reset($matches);
+			preg_match('/'.$entity_name.'_TS_(.*?)_TS/i', $matches, $matches);
+			$last_update = $matches[1];
+
+			$db_dir = $entity_name."_TS_".$last_update."_TS";
+
+			$result = array(
+				'dir' => $db_dir,
+				'last_update' => $last_update,
+			);
+		} else {
+			$result = false;
+		}
+
+		return $result;
+
+	}
+
+	function state_json_to_state_dir()
+	{
+		$state_json = $this->configs_to_state_json();
+
+
+		return $state_json;
+
 	}
 
 

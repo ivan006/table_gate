@@ -14,5 +14,11 @@
   <summary>
   Configs to state
   </summary>
-  <pre><?php echo $configs_to_state ?></pre>
+  <pre><?php echo $configs_to_state_json ?></pre>
+</details>
+<details>
+  <summary>
+  State_dir_to_state_json
+  </summary>
+  <pre><?php echo $state_dir_to_state_json ?></pre>
 </details>

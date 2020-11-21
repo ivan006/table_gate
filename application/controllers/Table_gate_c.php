@@ -46,10 +46,12 @@ class Table_gate_c extends CI_Controller
 		$data = array();
 		$data['db_to_configs'] = $this->table_gate_lib->db_to_configs();
 		$data['configs'] = "";
-		$data['configs_to_state'] = "";
+		$data['configs_to_state_json'] = "";
 
 		$data['configs'] = $this->table_gate_lib->configs();
-		$data['configs_to_state'] = $this->table_gate_lib->configs_to_state();
+		$data['configs_to_state_json'] = $this->table_gate_lib->configs_to_state_json();
+
+		$data['state_dir_to_state_json'] = $this->table_gate_lib->state_dir_to_state_json();
 
 
 		$this->load->view('header_v', array("title"=>"Table gate"));
