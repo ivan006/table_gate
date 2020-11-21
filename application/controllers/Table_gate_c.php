@@ -51,12 +51,20 @@ class Table_gate_c extends CI_Controller
 		$data['configs'] = $this->table_gate_lib->configs();
 		$data['configs_to_state_json'] = $this->table_gate_lib->configs_to_state_json();
 
-		$data['state_dir_to_state_json'] = $this->table_gate_lib->state_dir_to_state_json();
+		$data['changes'] = $this->table_gate_lib->changes();
 
 
 		$this->load->view('header_v', array("title"=>"Table gate"));
 		$this->load->view('table_gate_v', $data);
 		$this->load->view('footer_v');
+
+	}
+
+	public function sync_api($path)
+	{
+		$result = $this->table_gate_lib->sync_api($path);
+		header('Content-Type: application/json');
+		echo $result;
 
 	}
 

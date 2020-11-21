@@ -98,7 +98,11 @@ class Table_gate_lib
 		$tables = APPPATH.'g_table_gate/configs.json';
 		// include($erd_two_path);
 		$tables = file_get_contents($tables);
-		$tables = json_decode($tables, true);
+		if ($tables == "") {
+			$tables = array();
+		} else {
+			$tables = json_decode($tables, true);
+		}
 
 		// foreach ($variable as $key => $value) {
 		// 	// code...
@@ -117,9 +121,13 @@ class Table_gate_lib
 			);
 			$query = implode(" ", $query);
 
-			$items = $this->CI->db->query($query)->result_array()[0]["Auto_increment"];
-			// var_dump($items);
-			// exit;
+			$items = 0;
+			if (!empty($this->CI->db->query($query)->result_array())) {
+				// code...
+				$items = $this->CI->db->query($query)->result_array()[0]["Auto_increment"];
+				// var_dump($items);
+				// exit;
+			}
 
 			$items_per_page = 100;
 			$pages = ceil($items/$items_per_page);
@@ -202,66 +210,205 @@ class Table_gate_lib
 		return $result;
 	}
 
-	function state_dir_to_state_json()
+	function changes()
 	{
 		$dir = APPPATH.'g_table_gate/state';
 		$dir_scandir = scandir($dir);
 
 		$database_name = $this->CI->db->database;
 
-		// echo "<pre>";
-		// var_dump($database_name);
-		// exit;
+		$haystack = $dir_scandir;
+
+		$dir_and_timestamp_for_db = $this->dir_and_timestamp($haystack, $database_name);
+
+		$result = array();
+
+		if ($dir_and_timestamp_for_db == false) {
+
+			$db_dir = $database_name;
+			$db_full_dir = $dir."/".$db_dir;
+
+			$result[str_replace($dir,"",$db_full_dir)] = "missing";
+
+		} else {
+
+			$db_dir = $dir_and_timestamp_for_db["dir"];
+
+			$haystack_2 = scandir($dir."/".$db_dir);
+
+			$configs_to_state_json = $this->configs_to_state_json();
+			$configs_to_state_json = json_decode($configs_to_state_json);
+
+			foreach ($configs_to_state_json as $table => $row_groups) {
+				$dir_and_timestamp_table = $this->dir_and_timestamp($haystack_2, $table);
+
+				if ($dir_and_timestamp_table == false) {
+					$table_dir = $table;
+					$table_full_dir = $dir."/".$db_dir."/".$table_dir;
+
+					$result[str_replace($dir,"",$table_full_dir)] = "missing";
+				}	else {
+					$table_dir = $dir_and_timestamp_table["dir"];
+					$table_full_dir = $dir."/".$db_dir."/".$table_dir;
+
+					$haystack_3 = scandir($table_full_dir);
+
+					foreach ($row_groups as $row_group_name => $row_group_value) {
+						$dir_and_timestamp_row_group = $this->dir_and_timestamp($haystack_3, $row_group_name);
+
+						$row_group_value_json = json_encode($row_group_value, JSON_PRETTY_PRINT);
+
+						if ($dir_and_timestamp_row_group == false) {
+
+							$row_group_dir = $row_group_name;
+							$row_group_full_dir = $table_full_dir."/".$row_group_dir;
+
+							$result[str_replace($dir,"",$row_group_full_dir)] = "missing";
+						}	else {
+
+							$row_group_dir = $dir_and_timestamp_row_group["dir"];
+							$row_group_full_dir = $table_full_dir."/".$row_group_dir.".json";
+							$row_group_value_json_current = file_get_contents($row_group_full_dir);
+
+							if ($row_group_value_json_current !== $row_group_value_json) {
+								$row_group_dir_new = $row_group_name;
+								$row_group_full_dir_new = $table_full_dir."/".$row_group_dir_new;
+
+								$result[str_replace($dir,"",$row_group_full_dir)] = "changed";
+							}
+						}
+					}
+				}
+			}
+		}
+
+		$result = json_encode($result, JSON_PRETTY_PRINT);
+
+		$g_table_gate_dir = APPPATH.'g_table_gate';
+		$changes_file = $g_table_gate_dir."/changes_$database_name.json";
+		file_put_contents($changes_file, $result);
+		$result = file_get_contents($changes_file);
+
+		return $result;
+
+	}
+
+	function sync()
+	{
+
+		$database_name = $this->CI->db->database;
+
+		$g_table_gate_dir = APPPATH.'g_table_gate';
+		$changes_file = $g_table_gate_dir."/changes_$database_name.json";
+		$changes = file_get_contents($changes_file);
+		$changes = json_encode($changes);
+
+
+		$dir = APPPATH.'g_table_gate/state';
+		$dir_scandir = scandir($dir);
+
 
 		$haystack = $dir_scandir;
 
-		// array_key_exists\s*(\s*'|$['|\S]\s*,([^)]*))
-		// echo $database_name;
-		// $haystack = "owlbluegpyuty_db5__sss";
+		$dir_and_timestamp_for_db = $this->dir_and_timestamp($haystack, $database_name);
 
-		$dir_and_timestamp_for_db = $this->state_dir_to_state_json_helper($haystack, $database_name);
+		$result = array();
 
 		if ($dir_and_timestamp_for_db == false) {
 
 			$now = date('Y-m-d H-i-s');
 			$db_dir = $database_name."_TS_".$now."_TS";
-			mkdir($dir."/".$db_dir);
+			$db_full_dir = $dir."/".$db_dir;
+			mkdir($db_full_dir);
+
+			$result[] = str_replace($dir,"",$db_full_dir);
 
 		} else {
 
-			$haystack = scandir($dir."/".$dir_and_timestamp_for_db["dir"]);
 			$db_dir = $dir_and_timestamp_for_db["dir"];
-
-			$configs = $this->configs();
-			$configs = json_decode($configs);
-
-
-			foreach ($configs as $table => $value) {
-				$dir_and_timestamp_table = $this->state_dir_to_state_json_helper($haystack, $table);
-
-				if ($dir_and_timestamp_table == false) {
-
-					$now = date('Y-m-d H-i-s');
-					$table_dir = $table."_TS_".$now."_TS";
-					mkdir($dir."/".$db_dir."/".$table_dir);
-				}	else {
-					// code...
-				}
-
-
-				// echo "<pre>";
-				// var_dump($dir_scandir);
-				// exit;
-			}
-
 
 		}
 
-		return 123;
+		$haystack_2 = scandir($dir."/".$db_dir);
+
+		$configs_to_state_json = $this->configs_to_state_json();
+		$configs_to_state_json = json_decode($configs_to_state_json);
+
+		foreach ($configs_to_state_json as $table => $row_groups) {
+			$dir_and_timestamp_table = $this->dir_and_timestamp($haystack_2, $table);
+
+			if ($dir_and_timestamp_table == false) {
+				$now = date('Y-m-d H-i-s');
+				$table_dir = $table."_TS_".$now."_TS";
+				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
+				mkdir($table_full_dir);
+
+
+				$result[] = str_replace($dir,"",$table_full_dir);
+			}	else {
+				$table_dir = $dir_and_timestamp_table["dir"];
+				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
+			}
+
+
+			$haystack_3 = scandir($table_full_dir);
+
+			foreach ($row_groups as $row_group_name => $row_group_value) {
+				$dir_and_timestamp_row_group = $this->dir_and_timestamp($haystack_3, $row_group_name);
+
+				$row_group_value_json = json_encode($row_group_value, JSON_PRETTY_PRINT);
+
+				// var_dump($dir_and_timestamp_row_group);
+				// echo "<br>";
+				// var_dump($haystack_3);
+				// echo "<br>";
+				// var_dump($table);
+				// echo "<br>";
+				// echo "<br>";
+
+
+				if ($dir_and_timestamp_row_group == false) {
+
+					$now = date('Y-m-d H-i-s');
+					$row_group_dir = $row_group_name."_TS_".$now."_TS".".json";
+					$row_group_full_dir = $table_full_dir."/".$row_group_dir;
+					file_put_contents($row_group_full_dir,$row_group_value_json);
+
+
+					$result[] = str_replace($dir,"",$row_group_full_dir);
+				}	else {
+
+					$row_group_dir = $dir_and_timestamp_row_group["dir"].".json";
+					$row_group_full_dir = $table_full_dir."/".$row_group_dir;
+					$row_group_value_json_current = file_get_contents($row_group_full_dir);
+
+					if ($row_group_value_json_current !== $row_group_value_json) {
+						$now = date('Y-m-d H-i-s');
+						$row_group_dir_new = $row_group_name."_TS_".$now."_TS".".json";
+						$row_group_full_dir_new = $table_full_dir."/".$row_group_dir_new;
+
+						file_put_contents($row_group_full_dir,$row_group_value_json);
+						rename($row_group_full_dir, $row_group_full_dir_new);
+					}
+
+				}
+
+			}
+
+
+
+
+			// echo "<pre>";
+			// var_dump($dir_scandir);
+			// exit;
+		}
+
+		$result = json_encode($result, JSON_PRETTY_PRINT);
+		return $result;
 
 	}
 
-	function state_dir_to_state_json_helper($haystack, $entity_name)
+	function dir_and_timestamp($haystack, $entity_name)
 	{
 
 		$matches  = preg_grep ('/'.$entity_name.'_TS_(.*?)_TS/i', $haystack);
@@ -285,12 +432,96 @@ class Table_gate_lib
 
 	}
 
+	// function state_dir_to_state_json()
+	// {
+	// 	$this->changes();
+	//
+	//
+	// 	$dir = APPPATH.'g_table_gate/state';
+	// 	$dir_scandir = scandir($dir);
+	//
+	// 	$database_name = $this->CI->db->database;
+	//
+	// 	$haystack = $dir_scandir;
+	//
+	// 	$dir_and_timestamp_for_db = $this->dir_and_timestamp($haystack, $database_name);
+	//
+	// 	$result = array();
+	//
+	// 	if ($dir_and_timestamp_for_db == false) {
+	//
+	// 	} else {
+	//
+	// 		$haystack_2 = scandir($dir."/".$dir_and_timestamp_for_db["dir"]);
+	// 		$db_dir = $dir_and_timestamp_for_db["dir"];
+	//
+	//
+	// 		$configs_to_state_json = $this->configs_to_state_json();
+	// 		$configs_to_state_json = json_decode($configs_to_state_json);
+	//
+	// 		foreach ($configs_to_state_json as $table => $row_groups) {
+	// 			$dir_and_timestamp_table = $this->dir_and_timestamp($haystack_2, $table);
+	//
+	// 			if ($dir_and_timestamp_table == false) {
+	//
+	// 			}	else {
+	// 				$table_dir = $dir_and_timestamp_table["dir"];
+	// 				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
+	//
+	//
+	// 				$haystack_3 = scandir($table_full_dir);
+	//
+	// 				$result[$table_dir] = array();
+	//
+	// 				foreach ($row_groups as $row_group_name => $row_group_value) {
+	// 					$dir_and_timestamp_row_group = $this->dir_and_timestamp($haystack_3, $row_group_name);
+	//
+	// 					$row_group_value_json = json_encode($row_group_value, JSON_PRETTY_PRINT);
+	//
+	// 					if ($dir_and_timestamp_row_group == false) {
+	//
+	// 					}	else {
+	//
+	// 						$row_group_dir = $dir_and_timestamp_row_group["dir"].".json";
+	// 						$row_group_full_dir = $table_full_dir."/".$row_group_dir;
+	// 						$row_group_value_json_current = file_get_contents($row_group_full_dir);
+	// 						$row_group_value_array_current = json_decode($row_group_value_json_current);
+	//
+	// 						$result[$table_dir][$row_group_dir] = $row_group_value_array_current;
+	// 					}
+	//
+	// 				}
+	//
+	// 			}
+	//
+	// 		}
+	//
+	// 	}
+	//
+	// 	$result = json_encode($result, JSON_PRETTY_PRINT);
+	// 	return $result;
+	//
+	// }
+
 	function state_json_to_state_dir()
 	{
 		$state_json = $this->configs_to_state_json();
 
 
 		return $state_json;
+
+	}
+
+	function sync_api($path)
+	{
+		$result = "";
+		if ($path == "db") {
+			$result = $state_json = $this->configs_to_state_json();;
+		}	elseif ($path == "table") {
+			$result = "123";
+		}
+
+		return $result;
 
 	}
 

@@ -1,50 +1,18 @@
 {
-    "wp_commentmeta": {
-        "primary_key": "meta_id",
-        "state_indicator": "meta_value"
-    },
-    "wp_comments": {
-        "primary_key": "comment_ID",
-        "state_indicator": "comment_date"
-    },
-    "wp_links": {
-        "primary_key": "link_id",
-        "state_indicator": "link_updated"
-    },
-    "wp_options": {
-        "primary_key": "option_id",
-        "state_indicator": "option_name"
-    },
-    "wp_postmeta": {
-        "primary_key": "meta_id",
-        "state_indicator": "meta_key"
-    },
-    "wp_posts": {
-        "primary_key": "ID",
-        "state_indicator": "post_date"
-    },
-    "wp_term_relationships": {
-        "primary_key": "object_id",
-        "state_indicator": "term_order"
-    },
-    "wp_term_taxonomy": {
-        "primary_key": "term_taxonomy_id",
+    "groups": {
+        "primary_key": "id",
         "state_indicator": "description"
     },
-    "wp_termmeta": {
-        "primary_key": "meta_id",
-        "state_indicator": "meta_value"
+    "login_attempts": {
+        "primary_key": "id",
+        "state_indicator": "time"
     },
-    "wp_terms": {
-        "primary_key": "term_id",
-        "state_indicator": "slug"
+    "users": {
+        "primary_key": "id",
+        "state_indicator": "phone"
     },
-    "wp_usermeta": {
-        "primary_key": "umeta_id",
-        "state_indicator": "meta_key"
-    },
-    "wp_users": {
-        "primary_key": "ID",
-        "state_indicator": "display_name"
+    "users_groups": {
+        "primary_key": "id",
+        "state_indicator": "group_id"
     }
 }

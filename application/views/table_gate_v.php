@@ -18,7 +18,7 @@
 </details>
 <details>
   <summary>
-  State_dir_to_state_json
+  changes
   </summary>
-  <pre><?php echo $state_dir_to_state_json ?></pre>
+  <pre><?php echo $changes ?></pre>
 </details>
