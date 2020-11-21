@@ -227,6 +227,7 @@ class Table_gate_lib
 		}
 
 		$provider_state = file_get_contents("https://".$configs["provider"]."/sync_api/all/1");
+		// /sync_api/row_group/groups--1-100
 		$provider_state = json_decode($provider_state, true);
 
 
