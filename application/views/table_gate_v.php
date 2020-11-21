@@ -10,15 +10,15 @@
   </summary>
   <pre><?php echo $configs ?></pre>
 </details>
-<details>
+<!-- <details>
   <summary>
   Configs to state
   </summary>
-  <pre><?php echo $configs_to_state_json ?></pre>
-</details>
+  <pre><?php //echo $configs_to_state_json ?></pre>
+</details> -->
 <details>
   <summary>
-  changes
+  Changes
   </summary>
   <pre><?php echo $changes ?></pre>
 </details>

@@ -30,18 +30,6 @@ class Table_gate_c extends CI_Controller
 			redirect('auth/login', 'refresh');
 		}
 
-		// $data['tables'] = $this->table_page_lib->database_api();
-		//
-		//
-		//
-		//
-		// $data["rows"]["visible"] = array("name"=>array());
-		// $data["overview"]["table_id"] = "";
-		// $data["data_endpoint"] = "database_api";
-		// $data['title'] = "Database";
-		// $this->load->view('table_header_v', $data);
-		// $this->load->view('table_block_readonly_v', $data);
-		// $this->load->view('table_footer_v');
 
 		$data = array();
 		$data['db_to_configs'] = $this->table_gate_lib->db_to_configs();
@@ -49,7 +37,7 @@ class Table_gate_c extends CI_Controller
 		$data['configs_to_state_json'] = "";
 
 		$data['configs'] = $this->table_gate_lib->configs();
-		$data['configs_to_state_json'] = $this->table_gate_lib->configs_to_state_json();
+		// $data['configs_to_state_json'] = $this->table_gate_lib->configs_to_state_json();
 
 		$data['changes'] = $this->table_gate_lib->changes();
 
