@@ -1,18 +1,21 @@
 {
+  "provider": "orange.bluegemify.co.za",
+  "tables": {
     "groups": {
-        "primary_key": "id",
-        "state_indicator": "description"
+      "primary_key": "id",
+      "state_indicator": "description"
     },
     "login_attempts": {
-        "primary_key": "id",
-        "state_indicator": "time"
+      "primary_key": "id",
+      "state_indicator": "time"
     },
     "users": {
-        "primary_key": "id",
-        "state_indicator": "phone"
+      "primary_key": "id",
+      "state_indicator": "phone"
     },
     "users_groups": {
-        "primary_key": "id",
-        "state_indicator": "group_id"
+      "primary_key": "id",
+      "state_indicator": "group_id"
     }
+  }
 }
