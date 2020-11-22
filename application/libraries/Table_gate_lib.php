@@ -214,60 +214,26 @@ class Table_gate_lib
 		return $result;
 	}
 
-	function changes()
+	function dir_and_timestamp($haystack, $entity_name)
 	{
 
-		$configs = APPPATH.'g_table_gate/configs.json';
-		// include($erd_two_path);
-		$configs = file_get_contents($configs);
-		if ($configs == "") {
-			$configs = array();
+		$matches  = preg_grep('/'.$entity_name.'_TS_(.*?)_TS/i', $haystack);
+
+		if (!empty($matches)) {
+			$matches = reset($matches);
+			preg_match('/'.$entity_name.'_TS_(.*?)_TS/i', $matches, $matches);
+			$last_update = $matches[1];
+
+			$db_dir = $entity_name."_TS_".$last_update."_TS";
+
+			$result = array(
+				'dir' => $db_dir,
+				'last_update' => $last_update,
+			);
 		} else {
-			$configs = json_decode($configs, true);
+			$result = false;
 		}
 
-		$provider_state = file_get_contents("https://".$configs["provider"]."/sync_api/all/1");
-		// /sync_api/row_group/groups--1-100
-		$provider_state = json_decode($provider_state, true);
-
-
-
-
-		$consumer_state = array();
-
-		$file_loc = APPPATH.'g_table_gate/state';
-
-		$level_1_root_scandir = scandir($file_loc);
-
-
-		$level_2_database = $this->CI->db->database;
-		$level_2_database = $this->dir_and_timestamp($level_1_root_scandir, $level_2_database);
-
-		if ($level_2_database !== false) {
-
-			$level_2_database = $level_2_database["dir"];
-			$file_loc = $file_loc."/".$level_2_database;
-			$level_2_database_scandir = scandir($file_loc);
-
-
-			$consumer_state[$level_2_database["last_update"]] = $level_2_database_scandir;
-		}
-
-
-
-		if ($consumer_state !== $provider_state) {
-			$result = array(
-				"identicle" => "no",
-				"consumer_state" => $consumer_state,
-				"provider_state" => $provider_state
-			);
-		}	else {
-			$result = array(
-				"identicle" => "yes"
-			);
-		}
-
-		$result = json_encode($result, JSON_PRETTY_PRINT);
 		return $result;
 
 	}
@@ -295,7 +261,7 @@ class Table_gate_lib
 
 		if ($dir_and_timestamp_for_db == false) {
 
-			$now = date('Y-m-d H-i-s');
+			$now = date('Y-m-d H=i=s');
 			$db_dir = $database_name."_TS_".$now."_TS";
 			$db_full_dir = $dir."/".$db_dir;
 			mkdir($db_full_dir);
@@ -317,7 +283,7 @@ class Table_gate_lib
 			$dir_and_timestamp_table = $this->dir_and_timestamp($haystack_2, $table);
 
 			if ($dir_and_timestamp_table == false) {
-				$now = date('Y-m-d H-i-s');
+				$now = date('Y-m-d H=i=s');
 				$table_dir = $table."_TS_".$now."_TS";
 				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
 				mkdir($table_full_dir);
@@ -339,7 +305,7 @@ class Table_gate_lib
 
 				if ($dir_and_timestamp_row_group == false) {
 
-					$now = date('Y-m-d H-i-s');
+					$now = date('Y-m-d H=i=s');
 					$row_group_dir = $row_group_name."_TS_".$now."_TS".".json";
 					$row_group_full_dir = $table_full_dir."/".$row_group_dir;
 					file_put_contents($row_group_full_dir,$row_group_value_json);
@@ -353,7 +319,7 @@ class Table_gate_lib
 					$row_group_value_json_current = file_get_contents($row_group_full_dir);
 
 					if ($row_group_value_json_current !== $row_group_value_json) {
-						$now = date('Y-m-d H-i-s');
+						$now = date('Y-m-d H=i=s');
 						$row_group_dir_new = $row_group_name."_TS_".$now."_TS".".json";
 						$row_group_full_dir_new = $table_full_dir."/".$row_group_dir_new;
 
@@ -365,79 +331,11 @@ class Table_gate_lib
 		}
 	}
 
-	function dir_and_timestamp($haystack, $entity_name)
-	{
-
-		$matches  = preg_grep ('/'.$entity_name.'_TS_(.*?)_TS/i', $haystack);
-
-		if (!empty($matches)) {
-			$matches = reset($matches);
-			preg_match('/'.$entity_name.'_TS_(.*?)_TS/i', $matches, $matches);
-			$last_update = $matches[1];
-
-			$db_dir = $entity_name."_TS_".$last_update."_TS";
-
-			$result = array(
-				'dir' => $db_dir,
-				'last_update' => $last_update,
-			);
-		} else {
-			$result = false;
-		}
-
-		return $result;
-
-	}
-
-	function state_json_to_state_dir()
-	{
-		$state_json = $this->configs_to_state_json();
-
-
-		return $state_json;
-
-	}
-
-	function sync_api($type, $path)
-	{
-
-		$result = "";
-		$this->db_to_state();
-
-		if ($type == "all") {
-
-
-			$database_name = $this->CI->db->database;
-			$dir = APPPATH.'g_table_gate/state';
-			$dir_scandir = scandir($dir);
-			$haystack = $dir_scandir;
-			$dir_timestamp = $this->dir_and_timestamp($haystack, $database_name);
-
-			$result = array();
-			$result[$dir_timestamp["last_update"]] = array();
-
-			if ($dir_timestamp == false) {
-			} else {
-
-				$db_dir = $dir_timestamp["dir"];
-				$haystack_2 = scandir($dir."/".$db_dir);
-
-				$result[$dir_timestamp["last_update"]] = $haystack_2;
-			}
-
-		}	elseif ($type == "row_group") {
-			$result = $state_json = $this->row_group_state($path);
-		}
-
-		return $result;
-
-	}
-
 	function row_group_state($path)
 	{
 
 
-		$result = "";
+		$result = array();
 
 		$file_loc = APPPATH.'g_table_gate/state';
 
@@ -478,6 +376,145 @@ class Table_gate_lib
 			}
 		}
 
+		return $result;
+
+	}
+
+	function sync_api($type, $path)
+	{
+
+		$result = "";
+		$this->db_to_state();
+
+		if ($type == "all") {
+
+			$result = $this->db_state();
+
+		}	elseif ($type == "row_group") {
+			$result = $this->row_group_state($path);
+		}
+
+		return $result;
+
+	}
+
+	function db_state()
+	{
+
+
+
+		$result = array();
+
+		$level_1_file_loc = APPPATH.'g_table_gate/state';
+
+		$level_1_root_scandir = scandir($level_1_file_loc);
+
+
+		$level_2_database = $this->CI->db->database;
+		$level_2_database = $this->dir_and_timestamp($level_1_root_scandir, $level_2_database);
+
+		if ($level_2_database !== false) {
+			$level_2_database = $level_2_database["dir"];
+			$level_2_file_loc = $level_1_file_loc."/".$level_2_database;
+			$level_2_database_scandir = scandir($level_2_file_loc);
+
+			preg_match('/(.*?)_TS_(.*?)_TS/i', $level_2_database, $preg_match_result);
+			$level_2_database_name = $preg_match_result[1];
+			$result["."] = $preg_match_result[2];
+
+
+			// $level_3_table = explode("--",$path);
+			// $level_3_table = $level_3_table[0];
+			$level_3_tables = $level_2_database_scandir;
+			foreach ($level_3_tables as $level_3_table_index => $level_3_table) {
+
+				if ($level_3_table !== "." AND $level_3_table !== "..") {
+
+					$level_3_file_loc = $level_2_file_loc."/".$level_3_table;
+					$level_3_table_scandir = scandir($level_3_file_loc);
+
+					// $time["timestamp"] = filemtime($level_3_file_loc);
+					// $time["datetime"] = date('Y-m-d H=i=s', $time["timestamp"]);
+					// $time["datetime"] = str_replace('=', ':', $time["datetime"]);
+					// $time["timestamp_2"] = strtotime($time["datetime"]);
+					// echo "<pre>";
+					// var_dump($time);
+
+
+
+
+					preg_match('/(.*?)_TS_(.*?)_TS/i', $level_3_table, $preg_match_result);
+					$level_3_table_name = $preg_match_result[1];
+					$result["."."/".$level_3_table_name] = $preg_match_result[2];
+
+					$level_4_row_groups = $level_3_table_scandir;
+					foreach ($level_4_row_groups as $level_4_row_group_index => $level_4_row_group) {
+
+						if ($level_4_row_group !== "." AND $level_4_row_group !== "..") {
+							$level_4_file_loc = $level_3_file_loc."/".$level_4_row_group;
+
+
+							preg_match('/(.*?)_TS_(.*?)_TS/i', $level_4_row_group, $preg_match_result);
+							$level_4_row_group = $preg_match_result[1];
+							$result["."."/".$level_3_table_name."/".$level_4_row_group] = $preg_match_result[2];
+
+							// touch($level_4_file_loc, $someTimestamp);
+							// $result[$level_2_database][$level_3_table][$level_4_row_group] = array();
+							// $level_4_file_loc = $level_3_file_loc."/".$level_4_row_group;
+							// $level_4_row_group_scandir = file_get_contents($level_4_file_loc.".json");
+							// $level_4_row_group_scandir = json_decode($level_4_row_group_scandir, true);
+							// $result = $level_4_row_group_scandir;
+						}
+					}
+				}
+
+			}
+
+
+		}
+
+		return $result;
+
+	}
+
+	function changes()
+	{
+
+		$configs = APPPATH.'g_table_gate/configs.json';
+		// include($erd_two_path);
+		$configs = file_get_contents($configs);
+		if ($configs == "") {
+			$configs = array();
+		} else {
+			$configs = json_decode($configs, true);
+		}
+
+		$provider_state = file_get_contents("https://".$configs["provider"]."/sync_api/all/1");
+		// /sync_api/row_group/groups--1-100
+		$provider_state = json_decode($provider_state, true);
+
+
+
+
+
+		$consumer_state = $this->db_state();
+		// $consumer_state = $this->db_state();
+		// row_group_state
+
+
+		if ($consumer_state !== $provider_state) {
+			$result = array(
+				"identical" => "no",
+				"consumer_state" => $consumer_state,
+				"provider_state" => $provider_state
+			);
+		}	else {
+			$result = array(
+				"identical" => "yes"
+			);
+		}
+
+		$result = json_encode($result, JSON_PRETTY_PRINT);
 		return $result;
 
 	}
