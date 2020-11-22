@@ -1,12 +1,12 @@
 <details>
   <summary>
-  DB to configs
+  config_boiler_plate
   </summary>
-  <pre><?php echo $db_to_configs ?></pre>
+  <pre><?php echo $config_boiler_plate ?></pre>
 </details>
 <details>
   <summary>
-  Configs
+  configs
   </summary>
   <pre><?php echo $configs ?></pre>
 </details>
@@ -14,11 +14,11 @@
   <summary>
   Configs to state
   </summary>
-  <pre><?php //echo $configs_to_state_json ?></pre>
+  <pre><?php //echo $generate_state ?></pre>
 </details> -->
 <details>
   <summary>
-  Changes
+  compare_local_and_remote_states
   </summary>
-  <pre><?php echo $changes ?></pre>
+  <pre><?php echo $compare_local_and_remote_states ?></pre>
 </details>

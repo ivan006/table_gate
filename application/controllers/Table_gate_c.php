@@ -32,14 +32,14 @@ class Table_gate_c extends CI_Controller
 
 
 		$data = array();
-		$data['db_to_configs'] = $this->table_gate_lib->db_to_configs();
+		$data['config_boiler_plate'] = $this->table_gate_lib->config_boiler_plate();
 		$data['configs'] = "";
-		$data['configs_to_state_json'] = "";
+		$data['generate_state'] = "";
 
 		$data['configs'] = $this->table_gate_lib->configs();
-		// $data['configs_to_state_json'] = $this->table_gate_lib->configs_to_state_json();
+		// $data['generate_state'] = $this->table_gate_lib->generate_state();
 
-		$data['changes'] = $this->table_gate_lib->changes();
+		$data['compare_local_and_remote_states'] = $this->table_gate_lib->compare_local_and_remote_states();
 
 
 		$this->load->view('header_v', array("title"=>"Table gate"));
@@ -48,9 +48,9 @@ class Table_gate_c extends CI_Controller
 
 	}
 
-	public function sync_api($type, $path)
+	public function read_state_api($type, $path)
 	{
-		$result = $this->table_gate_lib->sync_api($type, $path);
+		$result = $this->table_gate_lib->read_state_api($type, $path);
 		$result = json_encode($result, JSON_PRETTY_PRINT);
 		header('Content-Type: application/json');
 		echo $result;

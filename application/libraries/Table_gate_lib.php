@@ -13,7 +13,7 @@ class Table_gate_lib
 	}
 
 
-	function db_to_configs()
+	function config_boiler_plate()
 	{
 
 
@@ -95,7 +95,7 @@ class Table_gate_lib
 		return $result;
 	}
 
-	function configs_to_state_json()
+	function generate_state()
 	{
 		$configs = APPPATH.'g_table_gate/configs.json';
 		// include($erd_two_path);
@@ -214,7 +214,7 @@ class Table_gate_lib
 		return $result;
 	}
 
-	function dir_and_timestamp($haystack, $entity_name)
+	function check_saved_state($haystack, $entity_name)
 	{
 
 		$matches  = preg_grep('/'.$entity_name.'_TS_(.*?)_TS/i', $haystack);
@@ -238,15 +238,15 @@ class Table_gate_lib
 
 	}
 
-	function db_to_state()
+	function save_state()
 	{
 
 		$database_name = $this->CI->db->database;
 
-		$g_table_gate_dir = APPPATH.'g_table_gate';
-		$changes_file = $g_table_gate_dir."/changes_$database_name.json";
-		$changes = file_get_contents($changes_file);
-		$changes = json_encode($changes);
+		// $g_table_gate_dir = APPPATH.'g_table_gate';
+		// $compare_local_and_remote_states_file = $g_table_gate_dir."/compare_local_and_remote_states_$database_name.json";
+		// $compare_local_and_remote_states = file_get_contents($compare_local_and_remote_states_file);
+		// $compare_local_and_remote_states = json_encode($compare_local_and_remote_states);
 
 
 		$dir = APPPATH.'g_table_gate/state';
@@ -255,11 +255,11 @@ class Table_gate_lib
 
 		$haystack = $dir_scandir;
 
-		$dir_and_timestamp_for_db = $this->dir_and_timestamp($haystack, $database_name);
+		$check_saved_state_for_db = $this->check_saved_state($haystack, $database_name);
 
 		// $result = array();
 
-		if ($dir_and_timestamp_for_db == false) {
+		if ($check_saved_state_for_db == false) {
 
 			$now = date('Y-m-d H=i=s');
 			$db_dir = $database_name."_TS_".$now."_TS";
@@ -270,19 +270,19 @@ class Table_gate_lib
 
 		} else {
 
-			$db_dir = $dir_and_timestamp_for_db["dir"];
+			$db_dir = $check_saved_state_for_db["dir"];
 
 		}
 
 		$haystack_2 = scandir($dir."/".$db_dir);
 
-		$configs_to_state_json = $this->configs_to_state_json();
-		$configs_to_state_json = json_decode($configs_to_state_json);
+		$generate_state = $this->generate_state();
+		$generate_state = json_decode($generate_state);
 
-		foreach ($configs_to_state_json as $table => $row_groups) {
-			$dir_and_timestamp_table = $this->dir_and_timestamp($haystack_2, $table);
+		foreach ($generate_state as $table => $row_groups) {
+			$check_saved_state_table = $this->check_saved_state($haystack_2, $table);
 
-			if ($dir_and_timestamp_table == false) {
+			if ($check_saved_state_table == false) {
 				$now = date('Y-m-d H=i=s');
 				$table_dir = $table."_TS_".$now."_TS";
 				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
@@ -291,7 +291,7 @@ class Table_gate_lib
 
 				// $result[] = str_replace($dir,"",$table_full_dir);
 			}	else {
-				$table_dir = $dir_and_timestamp_table["dir"];
+				$table_dir = $check_saved_state_table["dir"];
 				$table_full_dir = $dir."/".$db_dir."/".$table_dir;
 			}
 
@@ -299,11 +299,11 @@ class Table_gate_lib
 			$haystack_3 = scandir($table_full_dir);
 
 			foreach ($row_groups as $row_group_name => $row_group_value) {
-				$dir_and_timestamp_row_group = $this->dir_and_timestamp($haystack_3, $row_group_name);
+				$check_saved_state_row_group = $this->check_saved_state($haystack_3, $row_group_name);
 
 				$row_group_value_json = json_encode($row_group_value, JSON_PRETTY_PRINT);
 
-				if ($dir_and_timestamp_row_group == false) {
+				if ($check_saved_state_row_group == false) {
 
 					$now = date('Y-m-d H=i=s');
 					$row_group_dir = $row_group_name."_TS_".$now."_TS".".json";
@@ -314,7 +314,7 @@ class Table_gate_lib
 					// $result[] = str_replace($dir,"",$row_group_full_dir);
 				}	else {
 
-					$row_group_dir = $dir_and_timestamp_row_group["dir"].".json";
+					$row_group_dir = $check_saved_state_row_group["dir"].".json";
 					$row_group_full_dir = $table_full_dir."/".$row_group_dir;
 					$row_group_value_json_current = file_get_contents($row_group_full_dir);
 
@@ -331,7 +331,7 @@ class Table_gate_lib
 		}
 	}
 
-	function row_group_state($path)
+	function read_state_details($path)
 	{
 
 
@@ -343,7 +343,7 @@ class Table_gate_lib
 
 
 		$level_2_database = $this->CI->db->database;
-		$level_2_database = $this->dir_and_timestamp($level_1_root_scandir, $level_2_database);
+		$level_2_database = $this->check_saved_state($level_1_root_scandir, $level_2_database);
 
 		if ($level_2_database !== false) {
 
@@ -353,7 +353,7 @@ class Table_gate_lib
 
 			$level_3_table = explode("--",$path);
 			$level_3_table = $level_3_table[0];
-			$level_3_table = $this->dir_and_timestamp($level_2_database_scandir, $level_3_table);
+			$level_3_table = $this->check_saved_state($level_2_database_scandir, $level_3_table);
 
 
 			if ($level_3_table !== false) {
@@ -363,7 +363,7 @@ class Table_gate_lib
 
 				$level_4_row_group = explode("--",$path);
 				$level_4_row_group = $level_4_row_group[1];
-				$level_4_row_group = $this->dir_and_timestamp($level_3_table_scandir, $level_4_row_group);
+				$level_4_row_group = $this->check_saved_state($level_3_table_scandir, $level_4_row_group);
 
 				if ($level_4_row_group !== false) {
 
@@ -380,25 +380,25 @@ class Table_gate_lib
 
 	}
 
-	function sync_api($type, $path)
+	function read_state_api($type, $path)
 	{
 
 		$result = "";
-		$this->db_to_state();
+		$this->save_state();
 
 		if ($type == "all") {
 
-			$result = $this->db_state();
+			$result = $this->read_state_overview();
 
 		}	elseif ($type == "row_group") {
-			$result = $this->row_group_state($path);
+			$result = $this->read_state_details($path);
 		}
 
 		return $result;
 
 	}
 
-	function db_state()
+	function read_state_overview()
 	{
 
 
@@ -411,7 +411,7 @@ class Table_gate_lib
 
 
 		$level_2_database = $this->CI->db->database;
-		$level_2_database = $this->dir_and_timestamp($level_1_root_scandir, $level_2_database);
+		$level_2_database = $this->check_saved_state($level_1_root_scandir, $level_2_database);
 
 		if ($level_2_database !== false) {
 			$level_2_database = $level_2_database["dir"];
@@ -477,7 +477,7 @@ class Table_gate_lib
 
 	}
 
-	function changes()
+	function compare_local_and_remote_states()
 	{
 
 		$configs = APPPATH.'g_table_gate/configs.json';
@@ -489,17 +489,17 @@ class Table_gate_lib
 			$configs = json_decode($configs, true);
 		}
 
-		$provider_state = file_get_contents("https://".$configs["provider"]."/sync_api/all/1");
-		// /sync_api/row_group/groups--1-100
+		$provider_state = file_get_contents("https://".$configs["provider"]."/read_state_api/all/1");
+		// /read_state_api/row_group/groups--1-100
 		$provider_state = json_decode($provider_state, true);
 
 
 
 
 
-		$consumer_state = $this->db_state();
-		// $consumer_state = $this->db_state();
-		// row_group_state
+		$consumer_state = $this->read_state_overview();
+		// $consumer_state = $this->read_state_overview();
+		// read_state_details
 
 
 		if ($consumer_state !== $provider_state) {

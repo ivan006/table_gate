@@ -53,4 +53,4 @@ $route['default_controller'] = 'table_gate_c';
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;
 
-$route['sync_api/(:any)/(:any)'] = 'table_gate_c/sync_api/$1/$2';
+$route['read_state_api/(:any)/(:any)'] = 'table_gate_c/read_state_api/$1/$2';
