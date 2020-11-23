@@ -490,7 +490,7 @@ class Table_gate_lib
 		}
 
 		$provider_state = file_get_contents("https://".$configs["provider"]."/read_state_api/all/1");
-		// /read_state_api/row_group/groups--1-100
+		// /read_state_api/details/groups--1-100
 		$provider_state = json_decode($provider_state, true);
 
 
