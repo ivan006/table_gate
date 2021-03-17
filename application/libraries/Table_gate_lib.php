@@ -386,11 +386,11 @@ class Table_gate_lib
 		$result = "";
 		$this->save_state();
 
-		if ($type == "all") {
+		if ($type == "overview") {
 
 			$result = $this->read_state_overview();
 
-		}	elseif ($type == "row_group") {
+		}	elseif ($type == "details") {
 			$result = $this->read_state_details($path);
 		}
 
@@ -489,7 +489,7 @@ class Table_gate_lib
 			$configs = json_decode($configs, true);
 		}
 
-		$provider_state = file_get_contents("https://".$configs["provider"]."/read_state_api/all/1");
+		$provider_state = file_get_contents("https://".$configs["provider"]."/read_state_api/overview/1");
 		// /read_state_api/row_group/groups--1-100
 		$provider_state = json_decode($provider_state, true);
 

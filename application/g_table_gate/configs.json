@@ -1,5 +1,5 @@
 {
-  "provider": "orange.bluegemify.co.za",
+  "provider": "localhost:8000",
   "tables": {
     "groups": {
       "primary_key": "id",
